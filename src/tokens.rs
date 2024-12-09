@@ -18,12 +18,16 @@ pub enum PunctuationType {
     BackSlash, // \
     Colon, // :
     Comma, // ,
+    Equal, // ==,
+    Exclamation, // !
     Greater, // >
     LBrace, // {
     LParen, // (
     Less, // <
     Minus, // -
+    NotEqual, // !=
     Plus, // +
+    Question, // ?
     RBrace, // }
     RParen, // )
     Semicolon, // ;
@@ -61,11 +65,17 @@ pub enum TokenType {
 pub struct Token {
     token_type: TokenType,
     ch: Option::<String>,
+    position: (usize, usize),
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, ch: Option::<String>) -> Self {
-        Token {token_type, ch}
+    pub fn new(
+        token_type: TokenType, 
+        ch: Option::<String>,
+        row_position: usize,
+        character_position: usize,
+    ) -> Self {
+        Token {token_type, ch, position:(row_position, character_position)}
     }
     pub fn get_type(&self) -> TokenType {
         self.token_type.clone()
@@ -77,5 +87,14 @@ impl Token {
             None
         }
     }
+
+    pub fn get_row_position(&self) -> usize {
+        self.position.0
+    }
+
+    pub fn get_character_position(&self) -> usize {
+        self.position.1
+    }
+
 }
 

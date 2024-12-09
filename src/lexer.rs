@@ -7,6 +7,8 @@ pub struct Lexer<'a>{
     read_position: usize,
     ch: Option<u8>,
     keywords: HashMap<String, TokenType>,
+    file_positon: (usize, usize),
+    read_file_positon: (usize, usize),
 }
 
 impl<'a> Lexer<'a> {
@@ -18,10 +20,26 @@ impl<'a> Lexer<'a> {
             read_position: 0,
             ch: None,
             keywords: keywords,
+            file_positon: (0, 0),
+            read_file_positon: (0, 0),
         };
         lexer.read_char();
         lexer
     }
+    
+    pub fn get_row_position(&self) -> usize {
+        self.file_positon.0
+    }
+
+    pub fn get_character_position(&self) -> usize {
+        self.file_positon.1
+    }
+
+    pub fn set_file_position(&mut self, row_position: usize, character_position: usize) {
+        self.file_positon = (row_position, character_position);
+        self.read_file_positon = (row_position, character_position);
+    }
+
     fn init_keywords() -> HashMap<String, TokenType>{
         let mut keywords = HashMap::new();
         keywords.insert("let".to_string(), TokenType::SpecialWord(SpecialWordType::Let));
@@ -42,145 +60,124 @@ impl<'a> Lexer<'a> {
             self.ch = Some(self.input[self.read_position]);
         }
         self.position = self.read_position;
+        self.file_positon = self.read_file_positon;
+
+        self.read_file_positon = (self.read_file_positon.0, self.read_file_positon.1 + 1);
         self.read_position +=1;
+    }
+
+    fn peak_char(&self) -> Option<u8> {
+        if self.read_position  >= self.input.len() {
+            return None;
+        } else {
+            return self.input.get(self.read_position).copied()
+        }
     }
 
     pub fn next_token(&mut self) -> Token {
         self.skip_white_space();
         if self.ch.is_none() {
-            return Token::new(TokenType::EOF, None )
+            return Token::new(
+                TokenType::EOF,
+                None, 
+                self.get_row_position(), 
+                self.get_character_position(),
+            )
+        }
+        else if let Some(i) = self.get_punctuation() {
+            self.read_char();
+            return i;
+        } else if let Some(i) = self.get_identifier() {
+            return i;
+        } else if Self::is_digit(self.ch.unwrap()) {
+            let (
+                token_literal, 
+                row_position, 
+                character_position,
+            ) = self.read_number();
+
+            return Token::new(
+                TokenType::Data(DataType::Int), 
+                Some(token_literal),
+                row_position, 
+                character_position,
+            )
+        } else {
+            self.read_char();
+            return Token::new(
+                TokenType::Illegal, 
+            Some(self.ch.unwrap().to_string()),
+                self.get_row_position(),
+                self.get_character_position(),
+            )
         };
-        let token = match self.ch.unwrap() {
-            b'*' => Token::new(
-                TokenType::Punctuation(PunctuationType::Asterisk), 
-                None
-            ),
-            b'=' => Token::new(
-                TokenType::Punctuation(PunctuationType::Assign), 
-                None
-            ),
-            b'<' => Token::new(
-                TokenType::Punctuation(PunctuationType::Less), 
-                None
-            ),
-            b'>' => Token::new(
-                TokenType::Punctuation(PunctuationType::Greater), 
-                None
-            ),
-            b':' => Token::new(
-                TokenType::Punctuation(PunctuationType::Colon), 
-                None,
-            ),
-            b';' => Token::new(
-                TokenType::Punctuation(PunctuationType::Semicolon), 
-                None,
-            ),
-            b'(' => Token::new(
-                TokenType::Punctuation(PunctuationType::LParen), 
-                None
-            ),
-            b')' => Token::new(
-                TokenType::Punctuation(PunctuationType::RParen), 
-                None,
-            ),
-            b',' => Token::new(
-                TokenType::Punctuation(PunctuationType::Comma), 
-                None,
-            ),
-            b'+' => Token::new(
-                TokenType::Punctuation(PunctuationType::Plus), 
-                None,
-            ),
-            b'-' => Token::new(
-                TokenType::Punctuation(PunctuationType::Minus), 
-                None,
-            ),
-            b'{' => Token::new(
-                TokenType::Punctuation(PunctuationType::LBrace), 
-                None
-            ),
-            b'}' => Token::new(
-                TokenType::Punctuation(PunctuationType::RBrace), 
-                None
-            ),
-            b'&' => Token::new(
-                TokenType::Punctuation(PunctuationType::Ampersand), 
-                None
-            ),
-            _ =>  {
-                if Self::is_letter(self.ch) {
-                    let token_literal = self.read_identifier();
-                    let token_type = self.lookup_ident(&token_literal);
-                    return Token::new(token_type, Some(token_literal) )
-                } else if Self::is_digit(self.ch) {
-                    return Token::new(
-                        TokenType::Data(DataType::Int), 
-                        Some(self.read_number()),
-                    )
-                }else {
-                    Token::new(TokenType::Illegal, None )
-                }   
-            },
-        };
-        self.read_char();
-        token
     }
 }
 
 
 
 impl<'a> Lexer<'a> {
-    fn is_letter(ch: Option<u8>) -> bool {
-        if let Some(i) = ch {
-            ('a' as u8) <= i && i <= ('z' as u8) || ('A' as u8) <= i && i <= ('Z' as u8)
-        } else {false}
+    fn is_letter(ch: u8) -> bool {
+        ('a' as u8) <= ch && ch <= ('z' as u8) || ('A' as u8) <= ch && ch <= ('Z' as u8)
     }
-    fn is_underscore(ch: Option<u8>) -> bool {
-        if let Some(i) = ch {
-            i == ('_' as u8)
-        } else {false}
+    fn is_underscore(ch: u8) -> bool {
+        ch == ('_' as u8)
     }
 
-    fn is_digit(ch: Option<u8>) -> bool {
-        if let Some(i) = ch {
-            ('0' as u8) <= i && i <= ('9' as u8)
-        } else {false}
+    fn is_digit(ch: u8) -> bool {
+        ('0' as u8) <= ch && ch <= ('9' as u8)
     }
 
-    fn is_identifier(ch: Option<u8>, relativa_position: i32) -> bool {
-        if Self::is_letter(ch) {
+    fn is_identifier(ch: u8, relativa_position: i32) -> bool {
+        if Self::is_letter(ch) {true}
+        else if (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0 {
             true
-        } else if (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0 {
-            true
-        } else {
-            false
-        }
+        } else {false}
     }
 
     fn skip_white_space(&mut self) {
         while self.ch == Some(b' ') || self.ch == Some(b'\t') || self.ch == Some(b'\n') || self.ch == Some(b'\r'){
             self.read_char();
+            if self.ch == Some(b'\r') || self.ch == Some(b'\n') {
+                self.set_file_position(
+                    self.get_row_position() + 1,
+                    0,
+                )
+            }
         }
     }
 
-    fn read_identifier(&mut self) -> String {
+    fn read_identifier(&mut self) -> (String, usize, usize) {
+        let row_position = self.get_row_position();
+        let character_position = self.get_character_position();
         let position = self.position;
         let mut relative_position = 0;
-        while Self::is_identifier(self.ch, relative_position) {
+        while self.ch.is_some() && Self::is_identifier(self.ch.unwrap(), relative_position) {
             self.read_char();
             relative_position += 1;
         }
         let identifier = self.input.get(position..self.position);
-        String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap()
+        (
+            String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap(), 
+            row_position,
+            character_position,
+        )
     }
 
-    fn read_number(&mut self) -> String {
+    fn read_number(&mut self) -> (String, usize, usize) {
+        let row_position = self.get_row_position();
+        let character_position = self.get_character_position();
         let position = self.position;
-        while Self::is_digit(self.ch) {
+        while self.ch.is_some() && Self::is_digit(self.ch.unwrap()) {
             self.read_char();
         }
         let identifier = self.input.get(position..self.position);
-        String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap()
+        (
+            String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap(),
+            row_position,
+            character_position,
+        )
+            
     }
 
     fn lookup_ident(&self, ident: &String) -> TokenType {
@@ -193,66 +190,65 @@ impl<'a> Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn read_punctuation(&mut self) -> Option<Token> {
-        let token = match self.ch.unwrap() {
-            b'*' => Token::new(
-                TokenType::Punctuation(PunctuationType::Asterisk), 
-                None
-            ),
-            b'=' => Token::new(
-                TokenType::Punctuation(PunctuationType::Assign), 
-                None
-            ),
-            b'<' => Token::new(
-                TokenType::Punctuation(PunctuationType::Less), 
-                None
-            ),
-            b'>' => Token::new(
-                TokenType::Punctuation(PunctuationType::Greater), 
-                None
-            ),
-            b':' => Token::new(
-                TokenType::Punctuation(PunctuationType::Colon), 
-                None,
-            ),
-            b';' => Token::new(
-                TokenType::Punctuation(PunctuationType::Semicolon), 
-                None,
-            ),
-            b'(' => Token::new(
-                TokenType::Punctuation(PunctuationType::LParen), 
-                None
-            ),
-            b')' => Token::new(
-                TokenType::Punctuation(PunctuationType::RParen), 
-                None,
-            ),
-            b',' => Token::new(
-                TokenType::Punctuation(PunctuationType::Comma), 
-                None,
-            ),
-            b'+' => Token::new(
-                TokenType::Punctuation(PunctuationType::Plus), 
-                None,
-            ),
-            b'-' => Token::new(
-                TokenType::Punctuation(PunctuationType::Minus), 
-                None,
-            ),
-            b'{' => Token::new(
-                TokenType::Punctuation(PunctuationType::LBrace), 
-                None
-            ),
-            b'}' => Token::new(
-                TokenType::Punctuation(PunctuationType::RBrace), 
-                None
-            ),
-            b'&' => Token::new(
-                TokenType::Punctuation(PunctuationType::Ampersand), 
-                None
-            ),
+    fn get_identifier(&mut self) -> Option<Token> {
+        if !Self::is_letter(self.ch.unwrap()) {
+            return None;
+        }
+        let (
+            token_literal, 
+            row_position, 
+            character_position,
+        ) = self.read_identifier();
+        let token_type = self.lookup_ident(&token_literal);
+        return Some(Token::new(token_type, Some(token_literal), row_position, character_position))
+    }
+
+    fn get_punctuation(&mut self) -> Option<Token> {
+        let row_position = self.get_row_position();
+        let character_position = self.get_character_position();
+        let token_type = match self.ch.unwrap() {
+            b'&' => TokenType::Punctuation(PunctuationType::Ampersand),
+            b'=' => {
+                let next_symbol = self.peak_char();
+                if next_symbol.is_some() && next_symbol.unwrap() == b'=' {
+                    self.read_char();
+                    TokenType::Punctuation(PunctuationType::Equal)
+                } else {
+                    TokenType::Punctuation(PunctuationType::Assign)
+                }
+            }
+            b'*' => TokenType::Punctuation(PunctuationType::Asterisk),
+            b'\\' => TokenType::Punctuation(PunctuationType::BackSlash),
+            b':' => TokenType::Punctuation(PunctuationType::Colon), 
+            b',' => TokenType::Punctuation(PunctuationType::Comma), 
+            b'!' => {
+                let next_symbol = self.peak_char();
+                if next_symbol.is_some() && next_symbol.unwrap() == b'=' {
+                    self.read_char();
+                    TokenType::Punctuation(PunctuationType::NotEqual)
+                } else {
+                    TokenType::Punctuation(PunctuationType::Exclamation)
+                }
+            }
+            b'>' => TokenType::Punctuation(PunctuationType::Greater), 
+            b'{' => TokenType::Punctuation(PunctuationType::LBrace), 
+            b'(' => TokenType::Punctuation(PunctuationType::LParen), 
+            b'<' => TokenType::Punctuation(PunctuationType::Less), 
+            b'-' => TokenType::Punctuation(PunctuationType::Minus), 
+            b'+' => TokenType::Punctuation(PunctuationType::Plus), 
+            b'?' => TokenType::Punctuation(PunctuationType::Question), 
+            b'}' => TokenType::Punctuation(PunctuationType::RBrace), 
+            b')' => TokenType::Punctuation(PunctuationType::RParen), 
+            b';' => TokenType::Punctuation(PunctuationType::Semicolon), 
+            b'/' => TokenType::Punctuation(PunctuationType::Slash), 
             _ => return None,
         };
-    Some(token)
+        Some(
+            Token::new(
+                token_type, None, 
+                row_position, 
+                character_position,
+            )
+        )
     }
 }
