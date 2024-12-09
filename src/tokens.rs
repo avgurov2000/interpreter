@@ -1,4 +1,3 @@
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     Bool,
@@ -9,29 +8,28 @@ pub enum DataType {
     String,
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum PunctuationType {
-    Ampersand, // &
-    Assign, // =
-    Asterisk, // *
-    BackSlash, // \
-    Colon, // :
-    Comma, // ,
-    Equal, // ==,
+    Ampersand,   // &
+    Assign,      // =
+    Asterisk,    // *
+    BackSlash,   // \
+    Colon,       // :
+    Comma,       // ,
+    Equal,       // ==,
     Exclamation, // !
-    Greater, // >
-    LBrace, // {
-    LParen, // (
-    Less, // <
-    Minus, // -
-    NotEqual, // !=
-    Plus, // +
-    Question, // ?
-    RBrace, // }
-    RParen, // )
-    Semicolon, // ;
-    Slash, // /
+    Greater,     // >
+    LBrace,      // {
+    LParen,      // (
+    Less,        // <
+    Minus,       // -
+    NotEqual,    // !=
+    Plus,        // +
+    Question,    // ?
+    RBrace,      // }
+    RParen,      // )
+    Semicolon,   // ;
+    Slash,       // /
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,17 +41,17 @@ pub enum ControlFlowType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SpecialWordType {
-    False, 
-    Function, 
+    False,
+    Function,
     Let,
     Return,
-    True, 
+    True,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     ControlFlow(ControlFlowType),
-    Data(DataType), 
+    Data(DataType),
     EOF,
     Ident,
     Illegal,
@@ -64,23 +62,27 @@ pub enum TokenType {
 #[derive(Debug)]
 pub struct Token {
     token_type: TokenType,
-    ch: Option::<String>,
+    ch: Option<String>,
     position: (usize, usize),
 }
 
 impl Token {
     pub fn new(
-        token_type: TokenType, 
-        ch: Option::<String>,
+        token_type: TokenType,
+        ch: Option<String>,
         row_position: usize,
         character_position: usize,
     ) -> Self {
-        Token {token_type, ch, position:(row_position, character_position)}
+        Token {
+            token_type,
+            ch,
+            position: (row_position, character_position),
+        }
     }
     pub fn get_type(&self) -> TokenType {
         self.token_type.clone()
     }
-    pub fn get_ch(&self) -> Option::<String> {
+    pub fn get_ch(&self) -> Option<String> {
         if let Some(i) = &self.ch {
             Some(i.clone())
         } else {
@@ -95,6 +97,15 @@ impl Token {
     pub fn get_character_position(&self) -> usize {
         self.position.1
     }
-
 }
 
+impl Clone for Token {
+    fn clone(&self) -> Self {
+        Token::new(
+            self.get_type(),
+            self.get_ch(),
+            self.get_row_position(),
+            self.get_character_position(),
+        )
+    }
+}

@@ -1,55 +1,79 @@
 use super::tokens::*;
 use std::collections::HashMap;
 
-pub struct Lexer<'a>{
+pub struct Lexer<'a> {
     input: &'a [u8],
-    position: usize, 
+    position: usize,
     read_position: usize,
     ch: Option<u8>,
     keywords: HashMap<String, TokenType>,
-    file_positon: (usize, usize),
-    read_file_positon: (usize, usize),
+    file_position: (usize, usize),
+    read_file_position: (usize, usize),
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         let keywords = Self::init_keywords();
-        let mut lexer = Lexer{
+        let mut lexer = Lexer {
             input: input.as_bytes(),
             position: 0,
             read_position: 0,
             ch: None,
             keywords: keywords,
-            file_positon: (0, 0),
-            read_file_positon: (0, 0),
+            file_position: (0, 0),
+            read_file_position: (0, 0),
         };
         lexer.read_char();
         lexer
     }
-    
+
     pub fn get_row_position(&self) -> usize {
-        self.file_positon.0
+        self.file_position.0
     }
 
     pub fn get_character_position(&self) -> usize {
-        self.file_positon.1
+        self.file_position.1
     }
 
     pub fn set_file_position(&mut self, row_position: usize, character_position: usize) {
-        self.file_positon = (row_position, character_position);
-        self.read_file_positon = (row_position, character_position);
+        self.file_position = (row_position, character_position);
+        self.read_file_position = (row_position, character_position);
     }
 
-    fn init_keywords() -> HashMap<String, TokenType>{
+    fn init_keywords() -> HashMap<String, TokenType> {
         let mut keywords = HashMap::new();
-        keywords.insert("let".to_string(), TokenType::SpecialWord(SpecialWordType::Let));
-        keywords.insert("fn".to_string(), TokenType::SpecialWord(SpecialWordType::Function));
-        keywords.insert("True".to_string(), TokenType::SpecialWord(SpecialWordType::True));
-        keywords.insert("False".to_string(), TokenType::SpecialWord(SpecialWordType::False));
-        keywords.insert("return".to_string(), TokenType::SpecialWord(SpecialWordType::Return));
-        keywords.insert("if".to_string(), TokenType::ControlFlow(ControlFlowType::If));
-        keywords.insert("else".to_string(), TokenType::ControlFlow(ControlFlowType::Else));
-        keywords.insert("switch".to_string(), TokenType::ControlFlow(ControlFlowType::Switch));
+        keywords.insert(
+            "let".to_string(),
+            TokenType::SpecialWord(SpecialWordType::Let),
+        );
+        keywords.insert(
+            "fn".to_string(),
+            TokenType::SpecialWord(SpecialWordType::Function),
+        );
+        keywords.insert(
+            "True".to_string(),
+            TokenType::SpecialWord(SpecialWordType::True),
+        );
+        keywords.insert(
+            "False".to_string(),
+            TokenType::SpecialWord(SpecialWordType::False),
+        );
+        keywords.insert(
+            "return".to_string(),
+            TokenType::SpecialWord(SpecialWordType::Return),
+        );
+        keywords.insert(
+            "if".to_string(),
+            TokenType::ControlFlow(ControlFlowType::If),
+        );
+        keywords.insert(
+            "else".to_string(),
+            TokenType::ControlFlow(ControlFlowType::Else),
+        );
+        keywords.insert(
+            "switch".to_string(),
+            TokenType::ControlFlow(ControlFlowType::Switch),
+        );
         keywords
     }
 
@@ -60,17 +84,17 @@ impl<'a> Lexer<'a> {
             self.ch = Some(self.input[self.read_position]);
         }
         self.position = self.read_position;
-        self.file_positon = self.read_file_positon;
+        self.file_position = self.read_file_position;
 
-        self.read_file_positon = (self.read_file_positon.0, self.read_file_positon.1 + 1);
-        self.read_position +=1;
+        self.read_file_position = (self.read_file_position.0, self.read_file_position.1 + 1);
+        self.read_position += 1;
     }
 
     fn peak_char(&self) -> Option<u8> {
-        if self.read_position  >= self.input.len() {
+        if self.read_position >= self.input.len() {
             return None;
         } else {
-            return self.input.get(self.read_position).copied()
+            return self.input.get(self.read_position).copied();
         }
     }
 
@@ -79,42 +103,35 @@ impl<'a> Lexer<'a> {
         if self.ch.is_none() {
             return Token::new(
                 TokenType::EOF,
-                None, 
-                self.get_row_position(), 
+                None,
+                self.get_row_position(),
                 self.get_character_position(),
-            )
-        }
-        else if let Some(i) = self.get_punctuation() {
+            );
+        } else if let Some(i) = self.get_punctuation() {
             self.read_char();
             return i;
         } else if let Some(i) = self.get_identifier() {
             return i;
         } else if Self::is_digit(self.ch.unwrap()) {
-            let (
-                token_literal, 
-                row_position, 
-                character_position,
-            ) = self.read_number();
+            let (token_literal, row_position, character_position) = self.read_number();
 
             return Token::new(
-                TokenType::Data(DataType::Int), 
+                TokenType::Data(DataType::Int),
                 Some(token_literal),
-                row_position, 
+                row_position,
                 character_position,
-            )
+            );
         } else {
             self.read_char();
             return Token::new(
-                TokenType::Illegal, 
-            Some(self.ch.unwrap().to_string()),
+                TokenType::Illegal,
+                Some(self.ch.unwrap().to_string()),
                 self.get_row_position(),
                 self.get_character_position(),
-            )
+            );
         };
     }
 }
-
-
 
 impl<'a> Lexer<'a> {
     fn is_letter(ch: u8) -> bool {
@@ -129,20 +146,24 @@ impl<'a> Lexer<'a> {
     }
 
     fn is_identifier(ch: u8, relativa_position: i32) -> bool {
-        if Self::is_letter(ch) {true}
-        else if (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0 {
+        if Self::is_letter(ch) {
             true
-        } else {false}
+        } else if (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0 {
+            true
+        } else {
+            false
+        }
     }
 
     fn skip_white_space(&mut self) {
-        while self.ch == Some(b' ') || self.ch == Some(b'\t') || self.ch == Some(b'\n') || self.ch == Some(b'\r'){
+        while self.ch == Some(b' ')
+            || self.ch == Some(b'\t')
+            || self.ch == Some(b'\n')
+            || self.ch == Some(b'\r')
+        {
             self.read_char();
             if self.ch == Some(b'\r') || self.ch == Some(b'\n') {
-                self.set_file_position(
-                    self.get_row_position() + 1,
-                    0,
-                )
+                self.set_file_position(self.get_row_position() + 1, 0)
             }
         }
     }
@@ -158,7 +179,9 @@ impl<'a> Lexer<'a> {
         }
         let identifier = self.input.get(position..self.position);
         (
-            String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap(), 
+            String::from_utf8(identifier.unwrap().to_vec())
+                .ok()
+                .unwrap(),
             row_position,
             character_position,
         )
@@ -173,11 +196,12 @@ impl<'a> Lexer<'a> {
         }
         let identifier = self.input.get(position..self.position);
         (
-            String::from_utf8(identifier.unwrap().to_vec()).ok().unwrap(),
+            String::from_utf8(identifier.unwrap().to_vec())
+                .ok()
+                .unwrap(),
             row_position,
             character_position,
         )
-            
     }
 
     fn lookup_ident(&self, ident: &String) -> TokenType {
@@ -194,13 +218,14 @@ impl<'a> Lexer<'a> {
         if !Self::is_letter(self.ch.unwrap()) {
             return None;
         }
-        let (
-            token_literal, 
-            row_position, 
-            character_position,
-        ) = self.read_identifier();
+        let (token_literal, row_position, character_position) = self.read_identifier();
         let token_type = self.lookup_ident(&token_literal);
-        return Some(Token::new(token_type, Some(token_literal), row_position, character_position))
+        return Some(Token::new(
+            token_type,
+            Some(token_literal),
+            row_position,
+            character_position,
+        ));
     }
 
     fn get_punctuation(&mut self) -> Option<Token> {
@@ -219,8 +244,8 @@ impl<'a> Lexer<'a> {
             }
             b'*' => TokenType::Punctuation(PunctuationType::Asterisk),
             b'\\' => TokenType::Punctuation(PunctuationType::BackSlash),
-            b':' => TokenType::Punctuation(PunctuationType::Colon), 
-            b',' => TokenType::Punctuation(PunctuationType::Comma), 
+            b':' => TokenType::Punctuation(PunctuationType::Colon),
+            b',' => TokenType::Punctuation(PunctuationType::Comma),
             b'!' => {
                 let next_symbol = self.peak_char();
                 if next_symbol.is_some() && next_symbol.unwrap() == b'=' {
@@ -230,25 +255,24 @@ impl<'a> Lexer<'a> {
                     TokenType::Punctuation(PunctuationType::Exclamation)
                 }
             }
-            b'>' => TokenType::Punctuation(PunctuationType::Greater), 
-            b'{' => TokenType::Punctuation(PunctuationType::LBrace), 
-            b'(' => TokenType::Punctuation(PunctuationType::LParen), 
-            b'<' => TokenType::Punctuation(PunctuationType::Less), 
-            b'-' => TokenType::Punctuation(PunctuationType::Minus), 
-            b'+' => TokenType::Punctuation(PunctuationType::Plus), 
-            b'?' => TokenType::Punctuation(PunctuationType::Question), 
-            b'}' => TokenType::Punctuation(PunctuationType::RBrace), 
-            b')' => TokenType::Punctuation(PunctuationType::RParen), 
-            b';' => TokenType::Punctuation(PunctuationType::Semicolon), 
-            b'/' => TokenType::Punctuation(PunctuationType::Slash), 
+            b'>' => TokenType::Punctuation(PunctuationType::Greater),
+            b'{' => TokenType::Punctuation(PunctuationType::LBrace),
+            b'(' => TokenType::Punctuation(PunctuationType::LParen),
+            b'<' => TokenType::Punctuation(PunctuationType::Less),
+            b'-' => TokenType::Punctuation(PunctuationType::Minus),
+            b'+' => TokenType::Punctuation(PunctuationType::Plus),
+            b'?' => TokenType::Punctuation(PunctuationType::Question),
+            b'}' => TokenType::Punctuation(PunctuationType::RBrace),
+            b')' => TokenType::Punctuation(PunctuationType::RParen),
+            b';' => TokenType::Punctuation(PunctuationType::Semicolon),
+            b'/' => TokenType::Punctuation(PunctuationType::Slash),
             _ => return None,
         };
-        Some(
-            Token::new(
-                token_type, None, 
-                row_position, 
-                character_position,
-            )
-        )
+        Some(Token::new(
+            token_type,
+            None,
+            row_position,
+            character_position,
+        ))
     }
 }
