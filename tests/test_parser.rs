@@ -18,14 +18,17 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
-
         assert!(
             !check_parsing_error(&parser),
             "Parsing must not contain error",
         );
-        assert!(program.is_ok(), "Program parsing returned error {:?}", program.err().unwrap());
         assert!(
-            program.as_ref().unwrap().len() == 3, 
+            program.is_ok(),
+            "Program parsing returned error {:?}",
+            program.err().unwrap()
+        );
+        assert!(
+            program.as_ref().unwrap().len() == 3,
             "Program statements must contain 3 elements, got {}",
             program.as_ref().unwrap().len(),
         );
@@ -55,19 +58,14 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
+        assert!(check_parsing_error(&parser), "Parsing must contains error",);
 
         assert!(
-            check_parsing_error(&parser),
-            "Parsing must contains error",
-        );
-
-        assert!(
-            program.as_ref().unwrap().len() == 0, 
+            program.as_ref().unwrap().len() == 0,
             "Program statements must contain 0 elements, got {}",
             program.as_ref().unwrap().len(),
         );
     }
-
 
     fn check_parsing_error(parser: &Parser) -> bool {
         if parser.get_errors().len() == 0 {
@@ -78,7 +76,6 @@ mod test {
             }
             true
         }
-
     }
 
     fn is_let_statement(statement: &dyn Statement) -> bool {

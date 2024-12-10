@@ -1,7 +1,10 @@
-use super::super::{lexer::Lexer, tokens::{Token, TokenType, SpecialWordType, PunctuationType}};
 use super::super::ast::{Identifier, LetStatement, Program, Statement};
-use std::error::Error;
+use super::super::{
+    lexer::Lexer,
+    tokens::{PunctuationType, SpecialWordType, Token, TokenType},
+};
 use super::error::{ParsingError, ParsingErrorType};
+use std::error::Error;
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
@@ -11,7 +14,6 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-
     pub fn new(lexer: &'a mut Lexer<'a>) -> Self {
         let current_token = lexer.next_token();
         let peek_token = lexer.next_token();
@@ -30,7 +32,6 @@ impl<'a> Parser<'a> {
     pub fn push_error(&mut self, error: ParsingError) {
         self.errors.push(error);
     }
-
 
     fn next_token(&mut self) {
         self.current_token = self.peek_token.clone();
@@ -102,14 +103,13 @@ impl<'a> Parser<'a> {
         let error = ParsingError::new(
             ParsingErrorType::PeekError,
             format!(
-                "Expected next token at position {}, {} to be '{:?}', got '{:?}' instead", 
+                "Expected next token at position {}, {} to be '{:?}', got '{:?}' instead",
                 self.peek_token.get_row_position(),
                 self.peek_token.get_character_position(),
-                token_type, 
+                token_type,
                 self.peek_token.get_type(),
             ),
         );
         self.push_error(error);
     }
-
 }

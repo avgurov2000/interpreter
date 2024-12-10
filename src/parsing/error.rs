@@ -4,9 +4,8 @@ use std::{
     fmt::{Display, Formatter},
 };
 
-
 #[derive(Debug, Clone, PartialEq)]
-pub enum ParsingErrorType{
+pub enum ParsingErrorType {
     PeekError,
 }
 
@@ -18,7 +17,10 @@ pub struct ParsingError {
 
 impl ParsingError {
     pub fn new(error_type: ParsingErrorType, message: String) -> Self {
-        ParsingError{error_type, message}
+        ParsingError {
+            error_type,
+            message,
+        }
     }
 
     pub fn get_type(&self) -> ParsingErrorType {
@@ -39,4 +41,3 @@ impl Display for ParsingError {
     }
 }
 impl Error for ParsingError {}
-

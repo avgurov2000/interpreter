@@ -1,45 +1,7 @@
 use std::any::Any;
 
-use super::tokens::Token;
-
-pub trait Node {
-    fn token_literal(&self) -> Option<String>;
-}
-
-pub trait Statement: Node + Any {
-    fn statement_node(&self);
-    fn as_any(&self) -> &dyn Any;
-}
-
-pub trait Expression: Node {
-    fn expression_node(&self);
-}
-
-pub struct Program {
-    statements: Vec<Box<dyn Statement>>,
-}
-
-impl Program {
-    fn token_literal(&self) -> Option<String> {
-        if self.statements.len() > 0 {
-            return self.statements[0].token_literal();
-        } else {
-            return None;
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.statements.len()
-    }
-
-    pub fn get_item(&self, index: usize) -> &Box<dyn Statement> {
-        &self.statements[index]
-    }
-
-    pub fn new(statements: Vec<Box<dyn Statement>>) -> Self {
-        Program { statements }
-    }
-}
+use super::super::super::tokens::Token;
+use super::super::{Expression, Node, Statement};
 
 pub struct Identifier {
     token: Token,
