@@ -139,14 +139,14 @@ impl<'a> Lexer<'a> {
 
 impl Lexer<'_> {
     fn is_letter(ch: u8) -> bool {
-        (b'a'..=b'z').contains(&ch) || (b'A'..=b'Z').contains(&ch)
+        ch.is_ascii_lowercase() || ch.is_ascii_uppercase()
     }
     fn is_underscore(ch: u8) -> bool {
         ch == b'_'
     }
 
     fn is_digit(ch: u8) -> bool {
-        (b'0'..=b'9').contains(&ch)
+        ch.is_ascii_digit()
     }
 
     fn is_identifier(ch: u8, relativa_position: i32) -> bool {
