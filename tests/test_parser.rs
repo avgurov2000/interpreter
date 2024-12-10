@@ -8,7 +8,7 @@ mod test {
     type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
 
     fn check_parsing_error(parser: &Parser) -> bool {
-        if parser.get_errors().len() == 0 {
+        if parser.get_errors().is_empty() {
             false
         } else {
             for err in parser.get_errors() {
@@ -62,7 +62,7 @@ mod test {
             let foobar = 838383;
         ";
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
@@ -102,7 +102,7 @@ mod test {
             let 838383;
         ";
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
@@ -123,7 +123,7 @@ mod test {
         return 993322;
         ";
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 

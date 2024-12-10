@@ -17,7 +17,7 @@ impl Expression for Identifier {
 }
 impl Node for Identifier {
     fn token_literal(&self) -> Option<String> {
-        return self.token.get_ch();
+        self.token.get_ch()
     }
 }
 

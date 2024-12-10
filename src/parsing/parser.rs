@@ -19,13 +19,13 @@ impl<'a> Parser<'a> {
     pub fn new(lexer: &'a mut Lexer<'a>) -> Self {
         let current_token = lexer.next_token();
         let peek_token = lexer.next_token();
-        let parser = Parser {
+
+        Parser {
             lexer,
             current_token,
             peek_token,
             errors: Vec::new(),
-        };
-        parser
+        }
     }
 
     pub fn get_errors(&self) -> &Vec<ParsingError> {

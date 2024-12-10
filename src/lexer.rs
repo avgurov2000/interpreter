@@ -19,7 +19,7 @@ impl<'a> Lexer<'a> {
             position: 0,
             read_position: 0,
             ch: None,
-            keywords: keywords,
+            keywords,
             file_position: (0, 0),
             read_file_position: (0, 0),
         };
@@ -95,21 +95,21 @@ impl<'a> Lexer<'a> {
 
     fn peak_char(&self) -> Option<u8> {
         if self.read_position >= self.input.len() {
-            return None;
+            None
         } else {
-            return self.input.get(self.read_position).copied();
+            self.input.get(self.read_position).copied()
         }
     }
 
     pub fn next_token(&mut self) -> Token {
         self.skip_white_space();
         if self.ch.is_none() {
-            return Token::new(
+            Token::new(
                 TokenType::EOF,
                 None,
                 self.get_row_position(),
                 self.get_character_position(),
-            );
+            )
         } else if let Some(i) = self.get_punctuation() {
             self.read_char();
             return i;
@@ -133,29 +133,27 @@ impl<'a> Lexer<'a> {
             );
             self.read_char();
             return token;
-        };
+        }
     }
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer<'_> {
     fn is_letter(ch: u8) -> bool {
-        ('a' as u8) <= ch && ch <= ('z' as u8) || ('A' as u8) <= ch && ch <= ('Z' as u8)
+        (b'a'..=b'z').contains(&ch) || (b'A'..=b'Z').contains(&ch)
     }
     fn is_underscore(ch: u8) -> bool {
-        ch == ('_' as u8)
+        ch == b'_'
     }
 
     fn is_digit(ch: u8) -> bool {
-        ('0' as u8) <= ch && ch <= ('9' as u8)
+        (b'0'..=b'9').contains(&ch)
     }
 
     fn is_identifier(ch: u8, relativa_position: i32) -> bool {
         if Self::is_letter(ch) {
             true
-        } else if (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0 {
-            true
         } else {
-            false
+            (Self::is_digit(ch) || Self::is_underscore(ch)) && relativa_position > 0
         }
     }
 
@@ -219,19 +217,19 @@ impl<'a> Lexer<'a> {
     }
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer<'_> {
     fn get_identifier(&mut self) -> Option<Token> {
         if !Self::is_letter(self.ch.unwrap()) {
             return None;
         }
         let (token_literal, row_position, character_position) = self.read_identifier();
         let token_type = self.lookup_ident(&token_literal);
-        return Some(Token::new(
+        Some(Token::new(
             token_type,
             Some(token_literal),
             row_position,
             character_position,
-        ));
+        ))
     }
 
     fn get_double_punctuation(

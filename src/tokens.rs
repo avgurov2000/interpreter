@@ -84,11 +84,7 @@ impl Token {
         self.token_type.clone()
     }
     pub fn get_ch(&self) -> Option<String> {
-        if let Some(i) = &self.ch {
-            Some(i.clone())
-        } else {
-            None
-        }
+        self.ch.clone()
     }
 
     pub fn get_row_position(&self) -> usize {

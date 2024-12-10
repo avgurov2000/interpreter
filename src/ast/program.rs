@@ -6,10 +6,10 @@ pub struct Program {
 
 impl Program {
     fn token_literal(&self) -> Option<String> {
-        if self.statements.len() > 0 {
-            return self.statements[0].token_literal();
+        if !self.statements.is_empty() {
+            self.statements[0].token_literal()
         } else {
-            return None;
+            None
         }
     }
 

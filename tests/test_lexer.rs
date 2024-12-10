@@ -58,7 +58,7 @@ mod test {
             create_token_full(TokenType::EOF, None, 0, 21),
         ];
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         for expected_token in expected_tokens {
             let token = lexer.next_token();
             assert_eq!(token.get_type(), expected_token.get_type());
@@ -113,7 +113,7 @@ mod test {
             create_token_full(TokenType::EOF, None, 0, 16),
         ];
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         for expected_token in expected_tokens {
             let token = lexer.next_token();
             assert_eq!(token.get_type(), expected_token.get_type());
@@ -200,7 +200,7 @@ mod test {
             create_token_short(TokenType::EOF, None),
         ];
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         for expected_token in expected_tokens {
             let token = lexer.next_token();
             assert_eq!(token.get_type(), expected_token.get_type());
@@ -346,7 +346,7 @@ x != y\n
             create_token_full(TokenType::EOF, None, 10, 0),
         ];
 
-        let mut lexer = Lexer::new(&input);
+        let mut lexer = Lexer::new(input);
         for expected_token in expected_tokens {
             let token = lexer.next_token();
             assert_eq!(token.get_type(), expected_token.get_type());

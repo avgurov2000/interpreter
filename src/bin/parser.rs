@@ -6,7 +6,7 @@ fn main() {
 let = 10;\n
 let 838383;";
 
-    let mut lexer = Lexer::new(&input);
+    let mut lexer = Lexer::new(input);
     let mut parser = Parser::new(&mut lexer);
     let program = parser.parse();
 
