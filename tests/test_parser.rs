@@ -107,6 +107,7 @@ mod test {
         let program = parser.parse();
 
         assert!(check_parsing_error(&parser), "Parsing must contains error",);
+        assert!(parser.get_errors().len() == 3);
 
         assert!(
             program.as_ref().unwrap().len() == 0,
