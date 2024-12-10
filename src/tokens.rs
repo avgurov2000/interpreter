@@ -16,6 +16,7 @@ pub enum PunctuationType {
     BackSlash,   // \
     Colon,       // :
     Comma,       // ,
+    DoubleSlash, // //
     Equal,       // ==,
     Exclamation, // !
     Greater,     // >

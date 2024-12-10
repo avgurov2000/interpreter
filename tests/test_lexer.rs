@@ -74,23 +74,43 @@ mod test {
 
     #[test]
     fn test_lexer_premitives_with_positions() -> TestResult<()> {
-        let input = "=+(){},;";
+        let input = "=+()=={},;!///!=";
 
         let expected_tokens = vec![
             create_token_full(TokenType::Punctuation(PunctuationType::Assign), None, 0, 0),
             create_token_full(TokenType::Punctuation(PunctuationType::Plus), None, 0, 1),
             create_token_full(TokenType::Punctuation(PunctuationType::LParen), None, 0, 2),
             create_token_full(TokenType::Punctuation(PunctuationType::RParen), None, 0, 3),
-            create_token_full(TokenType::Punctuation(PunctuationType::LBrace), None, 0, 4),
-            create_token_full(TokenType::Punctuation(PunctuationType::RBrace), None, 0, 5),
-            create_token_full(TokenType::Punctuation(PunctuationType::Comma), None, 0, 6),
+            create_token_full(TokenType::Punctuation(PunctuationType::Equal), None, 0, 4),
+            create_token_full(TokenType::Punctuation(PunctuationType::LBrace), None, 0, 6),
+            create_token_full(TokenType::Punctuation(PunctuationType::RBrace), None, 0, 7),
+            create_token_full(TokenType::Punctuation(PunctuationType::Comma), None, 0, 8),
             create_token_full(
                 TokenType::Punctuation(PunctuationType::Semicolon),
                 None,
                 0,
-                7,
+                9,
             ),
-            create_token_full(TokenType::EOF, None, 0, 8),
+            create_token_full(
+                TokenType::Punctuation(PunctuationType::Exclamation),
+                None,
+                0,
+                10,
+            ),
+            create_token_full(
+                TokenType::Punctuation(PunctuationType::DoubleSlash),
+                None,
+                0,
+                11,
+            ),
+            create_token_full(TokenType::Punctuation(PunctuationType::Slash), None, 0, 13),
+            create_token_full(
+                TokenType::Punctuation(PunctuationType::NotEqual),
+                None,
+                0,
+                14,
+            ),
+            create_token_full(TokenType::EOF, None, 0, 16),
         ];
 
         let mut lexer = Lexer::new(&input);

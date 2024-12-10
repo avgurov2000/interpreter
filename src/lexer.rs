@@ -234,33 +234,39 @@ impl<'a> Lexer<'a> {
         ));
     }
 
+    fn get_double_punctuation(
+        &mut self,
+        second_ch: u8,
+        alternative: TokenType,
+        default: TokenType,
+    ) -> TokenType {
+        let next_symbol = self.peak_char();
+        if next_symbol.is_some() && next_symbol.unwrap() == second_ch {
+            self.read_char();
+            alternative
+        } else {
+            default
+        }
+    }
     fn get_punctuation(&mut self) -> Option<Token> {
         let row_position = self.get_row_position();
         let character_position = self.get_character_position();
         let token_type = match self.ch.unwrap() {
             b'&' => TokenType::Punctuation(PunctuationType::Ampersand),
-            b'=' => {
-                let next_symbol = self.peak_char();
-                if next_symbol.is_some() && next_symbol.unwrap() == b'=' {
-                    self.read_char();
-                    TokenType::Punctuation(PunctuationType::Equal)
-                } else {
-                    TokenType::Punctuation(PunctuationType::Assign)
-                }
-            }
+            b'=' => self.get_double_punctuation(
+                b'=',
+                TokenType::Punctuation(PunctuationType::Equal),
+                TokenType::Punctuation(PunctuationType::Assign),
+            ),
             b'*' => TokenType::Punctuation(PunctuationType::Asterisk),
             b'\\' => TokenType::Punctuation(PunctuationType::BackSlash),
             b':' => TokenType::Punctuation(PunctuationType::Colon),
             b',' => TokenType::Punctuation(PunctuationType::Comma),
-            b'!' => {
-                let next_symbol = self.peak_char();
-                if next_symbol.is_some() && next_symbol.unwrap() == b'=' {
-                    self.read_char();
-                    TokenType::Punctuation(PunctuationType::NotEqual)
-                } else {
-                    TokenType::Punctuation(PunctuationType::Exclamation)
-                }
-            }
+            b'!' => self.get_double_punctuation(
+                b'=',
+                TokenType::Punctuation(PunctuationType::NotEqual),
+                TokenType::Punctuation(PunctuationType::Exclamation),
+            ),
             b'>' => TokenType::Punctuation(PunctuationType::Greater),
             b'{' => TokenType::Punctuation(PunctuationType::LBrace),
             b'(' => TokenType::Punctuation(PunctuationType::LParen),
@@ -271,7 +277,11 @@ impl<'a> Lexer<'a> {
             b'}' => TokenType::Punctuation(PunctuationType::RBrace),
             b')' => TokenType::Punctuation(PunctuationType::RParen),
             b';' => TokenType::Punctuation(PunctuationType::Semicolon),
-            b'/' => TokenType::Punctuation(PunctuationType::Slash),
+            b'/' => self.get_double_punctuation(
+                b'/',
+                TokenType::Punctuation(PunctuationType::DoubleSlash),
+                TokenType::Punctuation(PunctuationType::Slash),
+            ),
             _ => return None,
         };
         Some(Token::new(
