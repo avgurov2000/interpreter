@@ -1,36 +1,17 @@
-use core::fmt;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter},
-};
-
-use super::{
-    ast::{Identifier, LetStatement, Program, Statement},
-    tokens::{PunctuationType, SpecialWordType, TokenType},
-};
-
-use super::{lexer::Lexer, tokens::Token};
+use super::super::{lexer::Lexer, tokens::{Token, TokenType, SpecialWordType, PunctuationType}};
+use super::super::ast::{Identifier, LetStatement, Program, Statement};
+use std::error::Error;
+use super::error::{ParsingError, ParsingErrorType};
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
+    errors: Vec<ParsingError>,
 }
-
-#[derive(Debug)]
-pub struct ParsingError {
-    pub message: String,
-}
-
-impl Display for ParsingError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Parsing Error: {}", self.message)
-    }
-}
-
-impl Error for ParsingError {}
 
 impl<'a> Parser<'a> {
+
     pub fn new(lexer: &'a mut Lexer<'a>) -> Self {
         let current_token = lexer.next_token();
         let peek_token = lexer.next_token();
@@ -38,9 +19,18 @@ impl<'a> Parser<'a> {
             lexer,
             current_token,
             peek_token,
+            errors: Vec::new(),
         };
         parser
     }
+
+    pub fn get_errors(&self) -> &Vec<ParsingError> {
+        &self.errors
+    }
+    pub fn push_error(&mut self, error: ParsingError) {
+        self.errors.push(error);
+    }
+
 
     fn next_token(&mut self) {
         self.current_token = self.peek_token.clone();
@@ -96,15 +86,30 @@ impl<'a> Parser<'a> {
     fn current_token_is(&self, token_type: TokenType) -> bool {
         self.current_token.get_type() == token_type
     }
-    fn peek_token_is(&self, token_type: TokenType) -> bool {
-        self.peek_token.get_type() == token_type
+    fn peek_token_is(&self, token_type: &TokenType) -> bool {
+        self.peek_token.get_type() == *token_type
     }
     fn expect_peek(&mut self, token_type: TokenType) -> bool {
-        if self.peek_token_is(token_type) {
+        if self.peek_token_is(&token_type) {
             self.next_token();
             true
         } else {
+            self.peek_error(&token_type);
             false
         }
     }
+    fn peek_error(&mut self, token_type: &TokenType) {
+        let error = ParsingError::new(
+            ParsingErrorType::PeekError,
+            format!(
+                "Expected next token at position {}, {} to be '{:?}', got '{:?}' instead", 
+                self.peek_token.get_row_position(),
+                self.peek_token.get_character_position(),
+                token_type, 
+                self.peek_token.get_type(),
+            ),
+        );
+        self.push_error(error);
+    }
+
 }

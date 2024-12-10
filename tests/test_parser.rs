@@ -3,11 +3,11 @@ mod test {
 
     use interpreter::ast::{LetStatement, Node, Statement};
     use interpreter::lexer::Lexer;
-    use interpreter::parser::Parser;
+    use interpreter::parsing::Parser;
 
     type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
     #[test]
-    fn test_let_statements() -> TestResult<()> {
+    fn test_correct_let_statements() -> TestResult<()> {
         let input = "
             let x = 5;
             let y = 10;
@@ -18,17 +18,19 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
-        if let Err(msg) = program {
-            panic!("Program parsing returned error {:?}", msg);
-        } else if program.as_ref().unwrap().len() != 3 {
-            panic!(
-                "program statements must contain 3 elements, got {}",
-                program.as_ref().unwrap().len()
-            );
-        }
+
+        assert!(
+            !check_parsing_error(&parser),
+            "Parsing must not contain error",
+        );
+        assert!(program.is_ok(), "Program parsing returned error {:?}", program.err().unwrap());
+        assert!(
+            program.as_ref().unwrap().len() == 3, 
+            "Program statements must contain 3 elements, got {}",
+            program.as_ref().unwrap().len(),
+        );
 
         let program = program.unwrap();
-
         let expected_literals = vec!["x".to_string(), "y".to_string(), "foobar".to_string()];
 
         for (idx, expected_literal) in expected_literals.into_iter().enumerate() {
@@ -39,6 +41,44 @@ mod test {
         }
 
         Ok(())
+    }
+
+    #[test]
+    fn test_incorrect_let_statement() {
+        let input = "
+            let x  5;
+            let = 10;
+            let 838383;
+        ";
+
+        let mut lexer = Lexer::new(&input);
+        let mut parser = Parser::new(&mut lexer);
+        let program = parser.parse();
+
+
+        assert!(
+            check_parsing_error(&parser),
+            "Parsing must contains error",
+        );
+
+        assert!(
+            program.as_ref().unwrap().len() == 0, 
+            "Program statements must contain 0 elements, got {}",
+            program.as_ref().unwrap().len(),
+        );
+    }
+
+
+    fn check_parsing_error(parser: &Parser) -> bool {
+        if parser.get_errors().len() == 0 {
+            false
+        } else {
+            for err in parser.get_errors() {
+                eprintln!("Found parsing error: \n{}", err);
+            }
+            true
+        }
+
     }
 
     fn is_let_statement(statement: &dyn Statement) -> bool {

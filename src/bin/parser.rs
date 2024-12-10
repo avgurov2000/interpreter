@@ -1,16 +1,19 @@
-use ::interpreter::{ast::LetStatement, lexer::Lexer, parser::Parser};
+use ::interpreter::{ast::LetStatement, lexer::Lexer, parsing::Parser};
 use interpreter::ast::Node;
 
 fn main() {
-    let input = "
-            let x = 5;
-            let y = 10;
-            let foobar = 838383;
-        ";
+    let input = "let x 5;\n
+let = 10;\n
+let 838383;";
 
     let mut lexer = Lexer::new(&input);
     let mut parser = Parser::new(&mut lexer);
     let program = parser.parse();
+
+    let errors = parser.get_errors();
+    for i in errors {
+        println!("{:?}", i.get_message());
+    }
 
     if let Err(msg) = program {
         panic!("Program parsing returned error {:?}", msg);
