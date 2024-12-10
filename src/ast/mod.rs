@@ -4,4 +4,4 @@ mod statement;
 
 pub use base::{Expression, Node, Statement};
 pub use program::Program;
-pub use statement::{Identifier, LetStatement};
+pub use statement::{Identifier, LetStatement, ReturnStatement};

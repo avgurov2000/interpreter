@@ -1,3 +1,5 @@
+use crate::ast::ReturnStatement;
+
 use super::super::ast::{Identifier, LetStatement, Program, Statement};
 use super::super::{
     lexer::Lexer,
@@ -55,8 +57,22 @@ impl<'a> Parser<'a> {
             TokenType::SpecialWord(SpecialWordType::Let) => self
                 .parse_let_statement()
                 .map(|stmt| stmt as Box<dyn Statement>),
+            TokenType::SpecialWord(SpecialWordType::Return) => self
+                .parse_return_statement()
+                .map(|stmt| stmt as Box<dyn Statement>),
             _ => None,
         }
+    }
+
+    fn parse_return_statement(&mut self) -> Option<Box<ReturnStatement>> {
+        let current_token = self.current_token.clone();
+
+        self.next_token();
+
+        while !self.current_token_is(TokenType::Punctuation(PunctuationType::Semicolon)) {
+            self.next_token();
+        }
+        Some(Box::new(ReturnStatement::new(current_token, None)))
     }
 
     fn parse_let_statement(&mut self) -> Option<Box<LetStatement>> {
@@ -81,7 +97,7 @@ impl<'a> Parser<'a> {
                 break;
             }
         }
-        return Some(Box::new(stmt));
+        Some(Box::new(stmt))
     }
 
     fn current_token_is(&self, token_type: TokenType) -> bool {

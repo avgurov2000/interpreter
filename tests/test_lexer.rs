@@ -23,30 +23,39 @@ mod test {
     #[test]
     fn test_lexer_illegal() -> TestResult<()> {
         let input = "=+(){},;Привет;";
-
         let expected_tokens = vec![
-            create_token_short(TokenType::Punctuation(PunctuationType::Assign), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::Plus), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::LParen), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::RParen), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::LBrace), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::RBrace), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::Comma), None),
-            create_token_short(TokenType::Punctuation(PunctuationType::Semicolon), None),
-            create_token_short(TokenType::Illegal, Some("159".to_string())),
-            create_token_short(TokenType::Illegal, Some("209".to_string())),
-            create_token_short(TokenType::Illegal, Some("128".to_string())),
-            create_token_short(TokenType::Illegal, Some("208".to_string())),
-            create_token_short(TokenType::Illegal, Some("184".to_string())),
-            create_token_short(TokenType::Illegal, Some("208".to_string())),
-            create_token_short(TokenType::Illegal, Some("178".to_string())),
-            create_token_short(TokenType::Illegal, Some("208".to_string())),
-            create_token_short(TokenType::Illegal, Some("181".to_string())),
-            create_token_short(TokenType::Illegal, Some("209".to_string())),
-            create_token_short(TokenType::Illegal, Some("130".to_string())),
-            create_token_short(TokenType::Illegal, Some("59".to_string())),
-            create_token_short(TokenType::Punctuation(PunctuationType::Semicolon), None),
-            create_token_short(TokenType::EOF, None),
+            create_token_full(TokenType::Punctuation(PunctuationType::Assign), None, 0, 0),
+            create_token_full(TokenType::Punctuation(PunctuationType::Plus), None, 0, 1),
+            create_token_full(TokenType::Punctuation(PunctuationType::LParen), None, 0, 2),
+            create_token_full(TokenType::Punctuation(PunctuationType::RParen), None, 0, 3),
+            create_token_full(TokenType::Punctuation(PunctuationType::LBrace), None, 0, 4),
+            create_token_full(TokenType::Punctuation(PunctuationType::RBrace), None, 0, 5),
+            create_token_full(TokenType::Punctuation(PunctuationType::Comma), None, 0, 6),
+            create_token_full(
+                TokenType::Punctuation(PunctuationType::Semicolon),
+                None,
+                0,
+                7,
+            ),
+            create_token_full(TokenType::Illegal, Some("208".to_string()), 0, 8),
+            create_token_full(TokenType::Illegal, Some("159".to_string()), 0, 9),
+            create_token_full(TokenType::Illegal, Some("209".to_string()), 0, 10),
+            create_token_full(TokenType::Illegal, Some("128".to_string()), 0, 11),
+            create_token_full(TokenType::Illegal, Some("208".to_string()), 0, 12),
+            create_token_full(TokenType::Illegal, Some("184".to_string()), 0, 13),
+            create_token_full(TokenType::Illegal, Some("208".to_string()), 0, 14),
+            create_token_full(TokenType::Illegal, Some("178".to_string()), 0, 15),
+            create_token_full(TokenType::Illegal, Some("208".to_string()), 0, 16),
+            create_token_full(TokenType::Illegal, Some("181".to_string()), 0, 17),
+            create_token_full(TokenType::Illegal, Some("209".to_string()), 0, 18),
+            create_token_full(TokenType::Illegal, Some("130".to_string()), 0, 19),
+            create_token_full(
+                TokenType::Punctuation(PunctuationType::Semicolon),
+                None,
+                0,
+                20,
+            ),
+            create_token_full(TokenType::EOF, None, 0, 21),
         ];
 
         let mut lexer = Lexer::new(&input);
@@ -54,6 +63,11 @@ mod test {
             let token = lexer.next_token();
             assert_eq!(token.get_type(), expected_token.get_type());
             assert_eq!(token.get_ch(), expected_token.get_ch());
+            assert_eq!(token.get_row_position(), expected_token.get_row_position());
+            assert_eq!(
+                token.get_character_position(),
+                expected_token.get_character_position()
+            );
         }
         Ok(())
     }
