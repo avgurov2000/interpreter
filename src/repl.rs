@@ -15,6 +15,7 @@ pub fn start<R: BufRead, W: Write>(input: R, mut output: W) {
         if let Some(Ok(line)) = scanner.next() {
             let mut lexer = Lexer::new(&line);
             lexer.set_file_position(line_count, 0);
+            lexer.set_read_file_position(line_count, 1);
             loop {
                 let token = lexer.next_token();
                 if token.get_type() == TokenType::EOF {

@@ -37,6 +37,9 @@ impl<'a> Lexer<'a> {
 
     pub fn set_file_position(&mut self, row_position: usize, character_position: usize) {
         self.file_position = (row_position, character_position);
+    }
+
+    pub fn set_read_file_position(&mut self, row_position: usize, character_position: usize) {
         self.read_file_position = (row_position, character_position);
     }
 
@@ -122,13 +125,14 @@ impl<'a> Lexer<'a> {
                 character_position,
             );
         } else {
-            self.read_char();
-            return Token::new(
+            let token = Token::new(
                 TokenType::Illegal,
                 Some(self.ch.unwrap().to_string()),
                 self.get_row_position(),
                 self.get_character_position(),
             );
+            self.read_char();
+            return token;
         };
     }
 }
@@ -163,7 +167,9 @@ impl<'a> Lexer<'a> {
         {
             self.read_char();
             if self.ch == Some(b'\r') || self.ch == Some(b'\n') {
-                self.set_file_position(self.get_row_position() + 1, 0)
+                let row_position = self.get_row_position();
+                self.set_file_position(row_position + 1, 0);
+                self.set_read_file_position(row_position + 1, 0);
             }
         }
     }
