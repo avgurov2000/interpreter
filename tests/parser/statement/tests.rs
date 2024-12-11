@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub mod test_let {
     use super::super::utils::utils_fn::*;
+    use crate::parser::utils::utils_fn::{check_parsing_error, TestResult};
     use interpreter::{lexer::Lexer, parsing::Parser};
 
     #[test]
@@ -12,7 +13,7 @@ pub mod test_let {
         ";
 
         let mut lexer = Lexer::new(input);
-        let mut parser = interpreter::parsing::Parser::new(&mut lexer);
+        let mut parser = Parser::new(&mut lexer);
         let program = parser.parse();
 
         assert!(
@@ -69,6 +70,7 @@ pub mod test_let {
 pub mod test_return {
 
     use super::super::utils::utils_fn::*;
+    use crate::parser::utils::utils_fn::{check_parsing_error, TestResult};
     use interpreter::{lexer::Lexer, parsing::Parser};
 
     #[test]

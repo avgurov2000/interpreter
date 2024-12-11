@@ -2,20 +2,6 @@
 pub mod utils_fn {
 
     use interpreter::ast::{LetStatement, Node, ReturnStatement, Statement};
-    use interpreter::parsing::Parser;
-
-    pub type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
-
-    pub fn check_parsing_error(parser: &Parser) -> bool {
-        if parser.get_errors().is_empty() {
-            false
-        } else {
-            for err in parser.get_errors() {
-                eprintln!("Found parsing error: \n{}\n", err);
-            }
-            true
-        }
-    }
 
     pub fn is_let_statement(statement: &dyn Statement) -> bool {
         statement.as_any().downcast_ref::<LetStatement>().is_some()
