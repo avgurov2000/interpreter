@@ -1,11 +1,23 @@
 use std::any::Any;
+use std::error::Error;
+use std::fmt::Write;
 
 use super::super::super::tokens::Token;
 use super::super::{Expression, Node, Statement};
 
 pub struct ExpressionStatement {
     token: Token,
-    expression: Option<Box<dyn Expression>>,
+    value: Option<Box<dyn Expression>>,
+}
+
+impl ExpressionStatement {
+    pub fn new(token: Token, value: Option<Box<dyn Expression>>) -> Self {
+        ExpressionStatement { token, value }
+    }
+
+    pub fn value(&self) -> &Option<Box<dyn Expression>> {
+        &self.value
+    }
 }
 
 impl Statement for ExpressionStatement {
@@ -15,8 +27,18 @@ impl Statement for ExpressionStatement {
         self
     }
 }
+
 impl Node for ExpressionStatement {
     fn token_literal(&self) -> Option<String> {
         self.token.get_ch()
+    }
+
+    fn get_string(&self) -> Result<String, Box<dyn Error>> {
+        let mut out = String::new();
+
+        if let Some(value) = self.value() {
+            write!(out, " = {}", value.get_string()?,)?;
+        }
+        Ok(out)
     }
 }

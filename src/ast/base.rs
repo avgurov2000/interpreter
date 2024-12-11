@@ -1,8 +1,8 @@
-use std::any::Any;
-
+use std::{any::Any, error::Error};
 
 pub trait Node {
     fn token_literal(&self) -> Option<String>;
+    fn get_string(&self) -> Result<String, Box<dyn Error>>;
 }
 
 pub trait Statement: Node + Any {

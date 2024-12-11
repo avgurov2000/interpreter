@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::error::Error;
 
 use super::super::super::tokens::Token;
 use super::super::{Expression, Node};
@@ -22,5 +23,9 @@ impl Expression for Identifier {
 impl Node for Identifier {
     fn token_literal(&self) -> Option<String> {
         self.token.get_ch()
+    }
+
+    fn get_string(&self) -> Result<String, Box<dyn Error>> {
+        Ok(self.token_literal().unwrap())
     }
 }

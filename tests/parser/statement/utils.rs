@@ -17,10 +17,10 @@ pub mod utils_fn {
     pub fn test_let_statement(statement: &dyn Statement, name: String) -> bool {
         if let Some(token_literal) = statement.token_literal() {
             assert!(
-                token_literal == name,
+                token_literal == *"let",
                 "Token literal '{}' is not equal to ground truth '{}'",
                 token_literal,
-                name,
+                "let",
             );
         } else {
             return false;

@@ -1,4 +1,6 @@
 use std::any::Any;
+use std::error::Error;
+use std::fmt::Write;
 
 use super::super::super::tokens::Token;
 use super::super::{Expression, Identifier, Node, Statement};
@@ -16,6 +18,10 @@ impl LetStatement {
     pub fn name(&self) -> &Identifier {
         &self.name
     }
+
+    pub fn value(&self) -> &Option<Box<dyn Expression>> {
+        &self.value
+    }
 }
 
 impl Statement for LetStatement {
@@ -28,5 +34,25 @@ impl Statement for LetStatement {
 impl Node for LetStatement {
     fn token_literal(&self) -> Option<String> {
         self.token.get_ch()
+    }
+
+    fn get_string(&self) -> Result<String, Box<dyn Error>> {
+        let mut out = String::new();
+
+        // TODO Add literal reading Error
+        write!(
+            out,
+            "{} {}",
+            self.token_literal().ok_or("Unable to read token literal")?,
+            self.name()
+                .token_literal()
+                .ok_or("Unable to read token literal")?,
+        )?;
+
+        if let Some(value) = self.value() {
+            write!(out, " = {}", value.get_string()?,)?;
+        }
+        write!(out, ";",)?;
+        Ok(out)
     }
 }

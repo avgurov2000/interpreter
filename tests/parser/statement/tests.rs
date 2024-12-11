@@ -35,10 +35,7 @@ pub mod test_let {
         let expected_literals = vec!["x".to_string(), "y".to_string(), "foobar".to_string()];
 
         for (idx, expected_literal) in expected_literals.into_iter().enumerate() {
-            assert!(test_let_statement(
-                program.get_item(idx).as_ref(),
-                expected_literal,
-            ))
+            assert!(test_let_statement(program.get_item(idx), expected_literal,))
         }
 
         Ok(())
@@ -104,7 +101,7 @@ pub mod test_return {
         let program = program.unwrap();
         for idx in 0..program.len() {
             assert!(
-                is_return_statement(program.get_item(idx).as_ref()),
+                is_return_statement(program.get_item(idx)),
                 "Statement must be 'ReturnStatement' type",
             )
         }

@@ -1,12 +1,15 @@
 use crate::ast::ReturnStatement;
 
-use super::super::ast::{Identifier, LetStatement, Program, Statement};
+use super::super::ast::{Expression, Identifier, LetStatement, Program, Statement};
 use super::super::{
     lexer::Lexer,
     tokens::{PunctuationType, SpecialWordType, Token, TokenType},
 };
 use super::error::{ParsingError, ParsingErrorType};
 use std::error::Error;
+
+type PrefixParserFn = fn() -> Box<dyn Expression>;
+type InfixParserFn = fn(Box<dyn Expression>) -> Box<dyn Expression>;
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
@@ -76,12 +79,13 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_let_statement(&mut self) -> Option<Box<LetStatement>> {
+        let current_token = self.current_token.clone();
         if !self.expect_peek(TokenType::Ident) {
             return None;
         }
 
         let stmt = LetStatement::new(
-            self.current_token.clone(),
+            current_token,
             Identifier::new(self.current_token.clone()),
             None,
         );

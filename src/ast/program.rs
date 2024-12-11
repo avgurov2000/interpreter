@@ -17,8 +17,8 @@ impl Program {
         self.statements.len()
     }
 
-    pub fn get_item(&self, index: usize) -> &Box<dyn Statement> {
-        &self.statements[index]
+    pub fn get_item(&self, index: usize) -> &dyn Statement {
+        self.statements[index].as_ref()
     }
 
     pub fn new(statements: Vec<Box<dyn Statement>>) -> Self {
