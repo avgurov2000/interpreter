@@ -37,7 +37,7 @@ impl Node for ExpressionStatement {
         let mut out = String::new();
 
         if let Some(value) = self.value() {
-            write!(out, " = {}", value.get_string()?,)?;
+            write!(out, "{}", value.get_string()?,)?;
         }
         Ok(out)
     }

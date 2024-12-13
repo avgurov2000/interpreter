@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum DataType {
     Bool,
     Char,
@@ -8,7 +8,7 @@ pub enum DataType {
     String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum PunctuationType {
     Ampersand,   // &
     Assign,      // =
@@ -33,14 +33,14 @@ pub enum PunctuationType {
     Slash,       // /
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum ControlFlowType {
     Else,
     If,
     Switch,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum SpecialWordType {
     False,
     Function,
@@ -49,7 +49,7 @@ pub enum SpecialWordType {
     True,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum TokenType {
     ControlFlow(ControlFlowType),
     Data(DataType),
