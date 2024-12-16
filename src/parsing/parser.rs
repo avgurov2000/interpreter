@@ -1,7 +1,11 @@
 use log::debug;
 
-use crate::ast::{
-    Expression, ExpressionStatement, Identifier, LetStatement, Program, ReturnStatement, Statement,
+use crate::{
+    ast::{
+        Expression, ExpressionStatement, Identifier, IntegerLiteral, LetStatement, Program,
+        ReturnStatement, Statement,
+    },
+    tokens::DataType,
 };
 
 use super::super::{
@@ -42,7 +46,9 @@ impl<'a> Parser<'a> {
         };
 
         parser.register_prefix(TokenType::Ident, |p| p.parse_identifier());
-        // parser.register_prefix(TokenType::Data(DataType::Any), |p| p.parse_identifier());
+        parser.register_prefix(TokenType::Data(DataType::Int), |p| {
+            p.parse_integer_literal()
+        });
         parser
     }
 
@@ -84,10 +90,6 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expressoin(&mut self, precedence: Precedence) -> Option<Box<dyn Expression>> {
-        // let current_token_type = match self.current_token.get_type() {
-        //     TokenType::Data(_) => TokenType::Data(DataType::Any),
-        //     _ => self.current_token.get_type(),
-        // };
         if let Some(prefix) = self.prefix_functions.get(&self.current_token.get_type()) {
             prefix(self)
         } else {
@@ -97,6 +99,25 @@ impl<'a> Parser<'a> {
 
     pub fn parse_identifier(&mut self) -> Option<Box<dyn Expression>> {
         Some(Box::new(Identifier::new(self.current_token.clone())))
+    }
+
+    pub fn parse_integer_literal(&mut self) -> Option<Box<dyn Expression>> {
+        let current_token = self.current_token.clone();
+        let mut error_msg = "".to_string();
+        if let Some(i) = current_token.get_ch() {
+            let current_value = i.parse::<i32>();
+            if current_value.is_ok() {
+                let value = current_value.unwrap();
+                return Some(Box::new(IntegerLiteral::new(current_token, value)));
+            } else {
+                error_msg = format!("Invalid conversion {} from string to integer.", i);
+            }
+        } else {
+            error_msg = "Empty integer token literal".to_string();
+        }
+        let error = ParsingError::new(ParsingErrorType::DataError, error_msg);
+        self.push_error(error);
+        None
     }
 
     fn parse_statement(&mut self) -> Option<Box<dyn Statement>> {

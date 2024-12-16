@@ -52,7 +52,7 @@ pub mod test_identifier {
         assert!(
             token_literal.clone().unwrap() == "foobar",
             "Expression statement token literal value must be {}, got {}",
-            input,
+            "foobar",
             token_literal.clone().unwrap(),
         );
 
@@ -78,7 +78,7 @@ pub mod test_identifier {
         assert!(
             token_literal.clone().unwrap() == "foobar",
             "Identifier token literal value must be {}, got {}",
-            input,
+            "foobar",
             token_literal.clone().unwrap(),
         );
     }
@@ -86,6 +86,7 @@ pub mod test_identifier {
 
 pub mod test_integet_literal {
     use crate::parser::utils::utils_fn::check_parsing_error;
+    use interpreter::ast::IntegerLiteral;
     use interpreter::lexer::Lexer;
     use interpreter::{
         ast::{ExpressionStatement, Node},
@@ -94,7 +95,7 @@ pub mod test_integet_literal {
 
     #[test]
     fn test_correct_integet_literal() {
-        let input = "5;";
+        let input = "27;";
 
         let mut lexer = Lexer::new(input);
         let mut parser = Parser::new(&mut lexer);
@@ -135,16 +136,35 @@ pub mod test_integet_literal {
             "Expression statement token literal must be Som(_), got None",
         );
         assert!(
-            token_literal.clone().unwrap() == "5",
+            token_literal.clone().unwrap() == "27",
             "Expression statement token literal value must be {}, got {}",
-            input,
+            "27",
             token_literal.clone().unwrap(),
         );
 
-        let identifier = expression_statement.value();
+        let integer_literal = expression_statement.value();
         assert!(
-            identifier.is_some(),
-            "Identifier of the expression statement must be Som(_), got None",
+            integer_literal.is_some(),
+            "Integer literal of the expression statement must be Som(_), got None",
+        );
+
+        let integer_literal = integer_literal
+            .as_ref()
+            .unwrap()
+            .as_any()
+            .downcast_ref::<IntegerLiteral>();
+        assert!(
+            integer_literal.is_some(),
+            "Integer literal downcasting must be successful, got failure",
+        );
+
+        let integer_value = integer_literal.unwrap().value();
+        eprintln!("{:?}", integer_value);
+        assert!(
+            integer_value == 27,
+            "Integer literal value must be {}, got {}",
+            27,
+            integer_value,
         );
     }
 }

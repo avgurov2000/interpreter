@@ -7,6 +7,7 @@ use std::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParsingErrorType {
     PeekError,
+    DataError,
 }
 
 #[derive(Debug)]
