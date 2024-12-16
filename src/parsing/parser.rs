@@ -1,13 +1,15 @@
+use log::debug;
+
 use crate::ast::{
     Expression, ExpressionStatement, Identifier, LetStatement, Program, ReturnStatement, Statement,
 };
 
-use super::{super::{
+use super::super::{
     lexer::Lexer,
     tokens::{PunctuationType, SpecialWordType, Token, TokenType},
-}, precedence};
-use super::precedence::Precedence;
+};
 use super::error::{ParsingError, ParsingErrorType};
+use super::precedence::Precedence;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -40,6 +42,7 @@ impl<'a> Parser<'a> {
         };
 
         parser.register_prefix(TokenType::Ident, |p| p.parse_identifier());
+        // parser.register_prefix(TokenType::Data(DataType::Any), |p| p.parse_identifier());
         parser
     }
 
@@ -50,7 +53,6 @@ impl<'a> Parser<'a> {
     fn register_infix(&mut self, toke_type: TokenType, funtion: InfixParserFn) {
         self.infix_functions.insert(toke_type, funtion);
     }
-    
 
     pub fn get_errors(&self) -> &Vec<ParsingError> {
         &self.errors
@@ -65,9 +67,14 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Result<Program, Box<dyn Error>> {
+        debug!("Parsing started");
         let mut statements: Vec<Box<dyn Statement>> = Vec::new();
         while self.current_token.get_type() != TokenType::EOF {
-
+            debug!(
+                "Current token -- type: {:?}, literal: {:?}",
+                self.current_token.get_type(),
+                self.current_token.get_ch(),
+            );
             if let Some(i) = self.parse_statement() {
                 statements.push(i);
             }
@@ -77,6 +84,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expressoin(&mut self, precedence: Precedence) -> Option<Box<dyn Expression>> {
+        // let current_token_type = match self.current_token.get_type() {
+        //     TokenType::Data(_) => TokenType::Data(DataType::Any),
+        //     _ => self.current_token.get_type(),
+        // };
         if let Some(prefix) = self.prefix_functions.get(&self.current_token.get_type()) {
             prefix(self)
         } else {
@@ -90,15 +101,21 @@ impl<'a> Parser<'a> {
 
     fn parse_statement(&mut self) -> Option<Box<dyn Statement>> {
         match self.current_token.get_type() {
-            TokenType::SpecialWord(SpecialWordType::Let) => self
-                .parse_let_statement()
-                .map(|stmt| stmt as Box<dyn Statement>),
-            TokenType::SpecialWord(SpecialWordType::Return) => self
-                .parse_return_statement()
-                .map(|stmt| stmt as Box<dyn Statement>),
-            _ =>  self
-                .parse_expression_statement()
-                .map(|stmt| stmt as Box<dyn Statement>),
+            TokenType::SpecialWord(SpecialWordType::Let) => {
+                debug!("{}Let statement parsing", "\t");
+                self.parse_let_statement()
+                    .map(|stmt| stmt as Box<dyn Statement>)
+            }
+            TokenType::SpecialWord(SpecialWordType::Return) => {
+                debug!("{}Return statement parsing", "\t");
+                self.parse_return_statement()
+                    .map(|stmt| stmt as Box<dyn Statement>)
+            }
+            _ => {
+                debug!("{}Expression statement parsing", "\t");
+                self.parse_expression_statement()
+                    .map(|stmt| stmt as Box<dyn Statement>)
+            }
         }
     }
 
@@ -106,9 +123,7 @@ impl<'a> Parser<'a> {
         let current_token = self.current_token.clone();
         let current_expression = self.parse_expressoin(Precedence::Lowest);
 
-        let expression = ExpressionStatement::new(
-            current_token, current_expression,
-        );
+        let expression = ExpressionStatement::new(current_token, current_expression);
 
         if self.peek_token_is(&TokenType::Punctuation(PunctuationType::Semicolon)) {
             self.next_token();

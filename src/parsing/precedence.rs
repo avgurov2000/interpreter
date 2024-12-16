@@ -1,8 +1,8 @@
 pub enum Precedence {
-    Lowest, 
+    Lowest,
     Equals,
     LessGreater,
-    Sum, 
+    Sum,
     Product,
     Prefix,
     Call,

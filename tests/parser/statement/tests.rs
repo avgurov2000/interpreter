@@ -55,7 +55,6 @@ pub mod test_let {
 
         assert!(check_parsing_error(&parser), "Parsing must contains error",);
         assert!(parser.get_errors().len() == 3);
-
     }
 }
 

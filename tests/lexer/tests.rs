@@ -1,6 +1,8 @@
 #[cfg(test)]
 pub mod test_fn {
-    use crate::lexer::utils::utils_fn::{create_token_full, create_token_short, TestResult};
+    use crate::lexer::utils::utils_fn::{
+        create_token_full, create_token_short, init_logger, TestResult,
+    };
     use interpreter::lexer::Lexer;
     use interpreter::tokens::{
         ControlFlowType, DataType, PunctuationType, SpecialWordType, TokenType,
@@ -8,6 +10,7 @@ pub mod test_fn {
 
     #[test]
     fn test_lexer_illegal() -> TestResult<()> {
+        init_logger();
         let input = "=+(){},;Привет;";
         let expected_tokens = vec![
             create_token_full(TokenType::Punctuation(PunctuationType::Assign), None, 0, 0),
@@ -61,6 +64,7 @@ pub mod test_fn {
 
     #[test]
     fn test_lexer_premitives_with_positions() -> TestResult<()> {
+        init_logger();
         let input = "=+()=={},;!///!=";
 
         let expected_tokens = vec![
@@ -117,6 +121,7 @@ pub mod test_fn {
 
     #[test]
     fn test_lexer_key_words() -> TestResult<()> {
+        init_logger();
         let input = "     let five = (2+3);
         let ten = 10;
         let add = fn(x, y) {
@@ -199,6 +204,7 @@ pub mod test_fn {
 
     #[test]
     fn test_lexer_controlflow_with_positions() -> TestResult<()> {
+        init_logger();
         let input = "let x = 12;\n
 let y = 22;\n
 let is_greater = fn(a: int, b: int) {\n
