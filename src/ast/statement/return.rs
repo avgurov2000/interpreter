@@ -2,6 +2,8 @@ use std::any::Any;
 use std::error::Error;
 use std::fmt::Write;
 
+use crate::ast::error::{ASTError, ASTErrorType, StatementErrorType};
+
 use super::super::super::tokens::Token;
 use super::super::{Expression, Node, Statement};
 
@@ -41,8 +43,14 @@ impl Node for ReturnStatement {
 
         if let Some(value) = self.value() {
             write!(out, " {}", value.get_string()?,)?;
+            write!(out, ";",)?;
+            Ok(out)
+        } else {
+            let error = Box::new(ASTError::new(
+                ASTErrorType::StatementError(StatementErrorType::ReturnError),
+                "Error while parsing return statement: None valie".to_string(),
+            ));
+            Err(error)
         }
-        write!(out, ";",)?;
-        Ok(out)
     }
 }
