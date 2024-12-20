@@ -1,4 +1,5 @@
 mod base;
+mod error;
 mod expression;
 mod program;
 mod statement;
