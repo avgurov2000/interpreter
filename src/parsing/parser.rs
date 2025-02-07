@@ -29,6 +29,7 @@ pub struct Parser<'a> {
     infix_functions: HashMap<TokenType, InfixParserFn>,
 }
 
+// Main interface
 impl<'a> Parser<'a> {
     pub fn new(lexer: &'a mut Lexer<'a>) -> Self {
         let current_token = lexer.next_token();
@@ -60,13 +61,6 @@ impl<'a> Parser<'a> {
         self.infix_functions.insert(toke_type, funtion);
     }
 
-    pub fn get_errors(&self) -> &Vec<ParsingError> {
-        &self.errors
-    }
-    pub fn push_error(&mut self, error: ParsingError) {
-        self.errors.push(error);
-    }
-
     fn next_token(&mut self) {
         self.current_token = self.peek_token.clone();
         self.peek_token = self.lexer.next_token();
@@ -89,16 +83,24 @@ impl<'a> Parser<'a> {
         Ok(Program::new(statements))
     }
 
+    fn current_token_is(&self, token_type: &TokenType) -> bool {
+        self.current_token.get_type() == *token_type
+    }
+    fn peek_token_is(&self, token_type: &TokenType) -> bool {
+        self.peek_token.get_type() == *token_type
+    }
+}
+// Main interface
+
+// Parsing expressoins
+impl Parser<'_> {
     fn parse_expressoin(&mut self, precedence: Precedence) -> Option<Box<dyn Expression>> {
         if let Some(prefix) = self.prefix_functions.get(&self.current_token.get_type()) {
             prefix(self)
         } else {
+            self.no_prefix_error(&self.current_token.get_type());
             None
         }
-    }
-
-    pub fn parse_identifier(&mut self) -> Option<Box<dyn Expression>> {
-        Some(Box::new(Identifier::new(self.current_token.clone())))
     }
 
     pub fn parse_integer_literal(&mut self) -> Option<Box<dyn Expression>> {
@@ -120,6 +122,14 @@ impl<'a> Parser<'a> {
         None
     }
 
+    pub fn parse_identifier(&mut self) -> Option<Box<dyn Expression>> {
+        Some(Box::new(Identifier::new(self.current_token.clone())))
+    }
+}
+// Parsing expressoins
+
+// Parsing statements
+impl Parser<'_> {
     fn parse_statement(&mut self) -> Option<Box<dyn Statement>> {
         match self.current_token.get_type() {
             TokenType::SpecialWord(SpecialWordType::Let) => {
@@ -138,29 +148,6 @@ impl<'a> Parser<'a> {
                     .map(|stmt| stmt as Box<dyn Statement>)
             }
         }
-    }
-
-    fn parse_expression_statement(&mut self) -> Option<Box<ExpressionStatement>> {
-        let current_token = self.current_token.clone();
-        let current_expression = self.parse_expressoin(Precedence::Lowest);
-
-        let expression = ExpressionStatement::new(current_token, current_expression);
-
-        if self.peek_token_is(&TokenType::Punctuation(PunctuationType::Semicolon)) {
-            self.next_token();
-        }
-        Some(Box::new(expression))
-    }
-
-    fn parse_return_statement(&mut self) -> Option<Box<ReturnStatement>> {
-        let current_token = self.current_token.clone();
-
-        self.next_token();
-
-        while !self.current_token_is(&TokenType::Punctuation(PunctuationType::Semicolon)) {
-            self.next_token();
-        }
-        Some(Box::new(ReturnStatement::new(current_token, None)))
     }
 
     fn parse_let_statement(&mut self) -> Option<Box<LetStatement>> {
@@ -189,12 +176,29 @@ impl<'a> Parser<'a> {
         Some(Box::new(stmt))
     }
 
-    fn current_token_is(&self, token_type: &TokenType) -> bool {
-        self.current_token.get_type() == *token_type
+    fn parse_return_statement(&mut self) -> Option<Box<ReturnStatement>> {
+        let current_token = self.current_token.clone();
+
+        self.next_token();
+
+        while !self.current_token_is(&TokenType::Punctuation(PunctuationType::Semicolon)) {
+            self.next_token();
+        }
+        Some(Box::new(ReturnStatement::new(current_token, None)))
     }
-    fn peek_token_is(&self, token_type: &TokenType) -> bool {
-        self.peek_token.get_type() == *token_type
+
+    fn parse_expression_statement(&mut self) -> Option<Box<ExpressionStatement>> {
+        let current_token = self.current_token.clone();
+        let current_expression = self.parse_expressoin(Precedence::Lowest);
+
+        let expression = ExpressionStatement::new(current_token, current_expression);
+
+        if self.peek_token_is(&TokenType::Punctuation(PunctuationType::Semicolon)) {
+            self.next_token();
+        }
+        Some(Box::new(expression))
     }
+
     fn expect_peek(&mut self, token_type: TokenType) -> bool {
         if self.peek_token_is(&token_type) {
             self.next_token();
@@ -204,6 +208,26 @@ impl<'a> Parser<'a> {
             false
         }
     }
+}
+// Parsing statements
+
+// Adding parsing error
+impl Parser<'_> {
+    pub fn get_errors(&self) -> &Vec<ParsingError> {
+        &self.errors
+    }
+    pub fn push_error(&mut self, error: ParsingError) {
+        self.errors.push(error);
+    }
+
+    fn no_prefix_error(&mut self, token_type: &TokenType) {
+        let error = ParsingError::new(
+            ParsingErrorType::PrefixError,
+            format!("No prefix type parse function for {:?} found", token_type,),
+        );
+        self.push_error(error);
+    }
+
     fn peek_error(&mut self, token_type: &TokenType) {
         let error = ParsingError::new(
             ParsingErrorType::PeekError,
@@ -218,3 +242,4 @@ impl<'a> Parser<'a> {
         self.push_error(error);
     }
 }
+// Adding parsing error
