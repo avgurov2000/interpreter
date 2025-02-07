@@ -168,3 +168,5 @@ pub mod test_integet_literal {
         );
     }
 }
+
+pub mod test_prefix_expression {}
