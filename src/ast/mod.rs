@@ -5,6 +5,6 @@ mod program;
 mod statement;
 
 pub use base::{Expression, Node, Statement};
-pub use expression::{Identifier, IntegerLiteral};
+pub use expression::{Identifier, IntegerLiteral, PrefixExpression};
 pub use program::Program;
 pub use statement::{ExpressionStatement, LetStatement, ReturnStatement};
